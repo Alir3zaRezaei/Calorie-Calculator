@@ -1,0 +1,130 @@
+@page "/CalorieCalculator"
+
+@using Constants
+@using Enums
+@using Models
+
+<h5 style="text-align: center">(BMR)محاسبه ميزان کالری مورد نياز بدن</h5>
+
+<hr>
+
+ <EditForm Model="person" OnValidSubmit="CalcTotalCaloreis">
+    
+  <DataAnnotationsValidator/>
+
+    <div class="form-group">
+        <label for="weight">وزن (کیلوگرم)</label>
+        <InputNumber @bind-Value="person.weight" class="form-control" id="weight" />
+        <ValidationMessage For=@(() => person.weight) />
+    </div>
+    
+    <div class="form-group">
+        <label for="height">قد (سانتی متر)</label>
+        <InputNumber @bind-Value="person.height" class="form-control" id="height" />
+        <ValidationMessage For=@(() => person.height) />
+    </div>
+    
+    <div class="form-group">
+        <label for="age">سن</label>
+        <InputNumber @bind-Value="person.age" class="form-control" id="age" />
+        <ValidationMessage For=@(() => person.age) />
+    </div>
+
+    <div>
+        <label for="gender">جنسیت</label>
+        <InputSelect class="form-control" @bind-Value="person.gender">
+            <option value="@GenderType.Male">مذکر</option>
+            <option value="@GenderType.Female">مونث</option>
+        </InputSelect>
+    </div> 
+
+        <div>
+        <label for="activityLevel">میزان فعالیت</label>
+        <InputSelect class="form-control" @bind-Value="person.activityLevel">
+            <option value="@ActivityLevel.Sedentary">بدون فعالیت - گر شما کم ورزش می کنید یا اصلا ورزش نمی کنید</option>
+            <option value="@ActivityLevel.LightActive">کم - ورزش سبک یک یا سه بار در هفته</option>
+            <option value="@ActivityLevel.ModerateActive">متوسط - اگر شما سه تا پنج بار در هفته ورزش متوسطی می کنید</option>
+            <option value="@ActivityLevel.VeryActive">زیاد - اگر شما شش یا هفت بار در هفته ورزش سنگین و شدید انجام می دهید</option>
+            <option value="@ActivityLevel.ExtraActive">خیلی زیاد - اگر شما دوبار در روز ورزش سنگین تمرینات بسیار سنگین انجام می دهید</option>
+        </InputSelect>
+    </div> 
+    
+
+    <div>
+        <button type="submit" class="btn btn-primary">محاسبه کن</button>
+	    <button type="reset" class="btn btn-secondary">حالت اولیه</button>
+    </div>
+
+ </EditForm>
+     <hr>
+
+    <div>@((MarkupString)result)</div>
+
+
+
+@code 
+{
+    private Person person;
+    private double bmr;
+    private double totalCalories;
+
+    private string result;
+    
+    public TotalCalorieCalculator()
+    {
+        person = new Person();
+    }
+
+    public void CalcBMR() 
+    {   
+        if(person.gender == GenderType.Male)
+        {
+            double maleBmrFactors = (13.7 * person.weight) + (5 * person.height) - (6.8 * person.age);
+            bmr = Constants.BmrMaleOffset + maleBmrFactors;
+
+        }else{
+
+            double femaleBmrFactors = (9.6 * person.weight) + (1.8 * person.height) - (4.7 * person.age);
+            bmr =  Constants.BmrFemaleOffset + femaleBmrFactors;
+        }
+    }
+
+    public void CalcTotalCaloreis()
+    {
+            CalcBMR();
+            switch (person.activityLevel)
+                {
+                    case ActivityLevel.Sedentary:
+                    {
+                        totalCalories = bmr * Constants.SedentaryFactor;
+                        break;
+                    }
+                    case ActivityLevel.LightActive:
+                    {
+                        totalCalories = bmr * Constants.LightlyActiveFactor;
+                        break;
+                    }
+                    case ActivityLevel.ModerateActive:
+                    {
+                        totalCalories = bmr * Constants.ModeratelyActiveFactor;
+                        break;
+                    }
+                    case ActivityLevel.VeryActive:
+                    {
+                        totalCalories = bmr * Constants.VeryActiveFactor;
+                        break;
+                    }
+                    case ActivityLevel.ExtraActive:
+                    {
+                        totalCalories = bmr * Constants.ExtraActiveFactor;
+                        break;
+                    }
+
+                }
+               result = "<ul><li>مقدار متابولیسم پایه :" +
+                        bmr + "</li><li>کالری موردنیاز روزانه :" +
+                        totalCalories + "</li></ul>";
+        
+    }
+
+}
